@@ -8,12 +8,15 @@ const {
   WAKATIME_API_KEY: wakatimeApiKey
 } = process.env;
 
+console.log(githubToken);
+
 const wakatime = new WakaTimeClient(wakatimeApiKey);
 
 const octokit = new Octokit({ auth: `token ${githubToken}` });
 
 async function main() {
   const stats = await wakatime.getMyStats({ range: RANGE.LAST_7_DAYS });
+
   await updateGist(stats);
 }
 
@@ -31,7 +34,8 @@ async function updateGist(stats) {
   }
 
   const lines = [];
-  for (let i = 0; i < Math.min(stats.data.languages.length, 5); i++) {
+
+  for (let i = 0; i < Math.min(stats.data.languages.length, 3); i++) {
     const data = stats.data.languages[i];
     const { name, percent, text: time } = data;
 
@@ -45,6 +49,20 @@ async function updateGist(stats) {
     lines.push(line.join(" "));
   }
 
+  lines.push("Editor Used");
+  for (let i = 0; i < Math.min(stats.data.languages.length, 2); i++) {
+    const data = stats.data.editors[i];
+    const { name, percent, text: time } = data;
+
+    const line = [
+      trimRightStr(name, 10).padEnd(10),
+      time.padEnd(14),
+      generateBarChart(percent, 21),
+      String(percent.toFixed(1)).padStart(5) + "%"
+    ];
+
+    lines.push(line.join(" "));
+  }
   if (lines.length == 0) return;
 
   try {
