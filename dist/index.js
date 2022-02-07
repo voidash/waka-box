@@ -840,57 +840,107 @@ module.exports = (function(e, t) {
     r(63).config();
     const { WakaTimeClient: n, RANGE: i } = r(650);
     const s = r(0);
-    const { GIST_ID: o, GH_TOKEN: a, WAKATIME_API_KEY: u } = process.env;
-    console.log(a);
-    const p = new n(u);
-    const c = new s({ auth: `token ${a}` });
+    const {
+      GIST_ID: o,
+      GIST_ID_SECOND: a,
+      GH_TOKEN: u,
+      WAKATIME_API_KEY: p
+    } = process.env;
+    const c = new n(p);
+    const d = new s({ auth: `token ${u}` });
     async function main() {
-      const e = await p.getMyStats({ range: i.LAST_7_DAYS });
+      const e = await c.getMyStats({ range: i.LAST_7_DAYS });
       await updateGist(e);
     }
     function trimRightStr(e, t) {
       return e.length > t ? e.substring(0, t - 3) + "..." : e;
     }
     async function updateGist(e) {
-      let t;
+      let t, r;
       try {
-        t = await c.gists.get({ gist_id: o });
+        t = await d.gists.get({ gist_id: o });
       } catch (e) {
         console.error(`Unable to get gist\n${e}`);
       }
-      const r = [];
+      try {
+        r = await d.gists.get({ gist_id: a });
+      } catch (e) {
+        console.error(`Unable to get gist\n${e}`);
+      }
+      const n = [];
+      const i = [];
       for (let t = 0; t < Math.min(e.data.languages.length, 3); t++) {
-        const n = e.data.languages[t];
-        const { name: i, percent: s, text: o } = n;
+        const r = e.data.languages[t];
+        const { name: i, percent: s, text: o } = r;
         const a = [
           trimRightStr(i, 10).padEnd(10),
           o.padEnd(14),
           generateBarChart(s, 21),
           String(s.toFixed(1)).padStart(5) + "%"
         ];
-        r.push(a.join(" "));
+        n.push(a.join(" "));
       }
-      r.push("Editor Used");
-      for (let t = 0; t < Math.min(e.data.languages.length, 2); t++) {
-        const n = e.data.editors[t];
-        const { name: i, percent: s, text: o } = n;
+      i.push("Editor Used");
+      for (let t = 0; t < Math.min(e.data.editors.length, 2); t++) {
+        const r = e.data.editors[t];
+        const { name: n, percent: s, text: o } = r;
         const a = [
-          trimRightStr(i, 10).padEnd(10),
+          trimRightStr(n, 10).padEnd(10),
           o.padEnd(14),
           generateBarChart(s, 21),
           String(s.toFixed(1)).padStart(5) + "%"
         ];
-        r.push(a.join(" "));
+        i.push(a.join(" "));
       }
-      if (r.length == 0) return;
+      i.push("Operating System used");
+      for (let t = 0; t < Math.min(e.data.operating_systems.length, 2); t++) {
+        const r = e.data.operating_systems[t];
+        const { name: n, percent: s, text: o } = r;
+        const a = [
+          trimRightStr(n, 10).padEnd(10),
+          o.padEnd(14),
+          generateBarChart(s, 21),
+          String(s.toFixed(1)).padStart(5) + "%"
+        ];
+        i.push(a.join(" "));
+      }
+      if (i.length == 0) return;
       try {
         const e = Object.keys(t.data.files)[0];
-        await c.gists.update({
+        await d.gists.update({
           gist_id: o,
           files: {
             [e]: {
               filename: `📊 Weekly development breakdown`,
-              content: r.join("\n")
+              content: n.join("\n")
+            }
+          }
+        });
+      } catch (e) {
+        console.error(`Unable to update gist\n${e}`);
+      }
+      try {
+        const e = Object.keys(r.data.files)[0];
+        await d.gists.update({
+          gist_id: a,
+          files: {
+            [e]: {
+              filename: `📊 Weekly development breakdown`,
+              content: i.join("\n")
+            }
+          }
+        });
+      } catch (e) {
+        console.error(`Unable to update gist\n${e}`);
+      }
+      try {
+        const e = Object.keys(t.data.files)[0];
+        await d.gists.update({
+          gist_id: o,
+          files: {
+            [e]: {
+              filename: `📊 Weekly development breakdown`,
+              content: n.join("\n")
             }
           }
         });

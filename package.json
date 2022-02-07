@@ -2,7 +2,7 @@
   "name": "waka-box",
   "version": "3.0.0",
   "description": "📊 Update a gist to contain your weekly WakaTime stats",
-  "author": "Matan Kushner <hello@matchai.me>",
+  "author": "Matan Kushner <hello@matchai.me>, Ashish Thapa",
   "license": "ISC",
   "scripts": {
     "start": "node ./index.js",
